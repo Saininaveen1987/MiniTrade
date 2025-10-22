@@ -1,0 +1,23 @@
+# Ignore Python cache and compiled files
+__pycache__/
+*.pyc
+*.pyo
+
+# Ignore virtual environments
+venv/
+env/
+
+# Ignore data and temporary files
+data/
+*.json
+*.csv
+*.db
+
+# Ignore OS/editor junk
+.DS_Store
+Thumbs.db
+.vscode/
+*.log
+
+# Ignore notebook checkpoints
+.ipynb_checkpoints/

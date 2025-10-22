@@ -1,0 +1,1 @@
+Why use the __str__ method in User class

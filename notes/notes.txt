@@ -1,0 +1,357 @@
+⚙️ CLASS MAP (Detailed)
+🧑‍💼 1️⃣ User
+
+→ Represents a trading account in the system.
+
+🔹 Relationship
+
+“Has a” → Portfolio
+
+“Has many” → Order objects (order history)
+
+“Uses” → Broker to place orders
+
+🔹 State (Attributes)
+| Attribute       | Type        | Description                   |
+| --------------- | ----------- | ----------------------------- |
+| `username`      | str         | Unique identifier of the user |
+| `balance`       | float       | Available trading balance     |
+| `portfolio`     | Portfolio   | User’s holdings and P&L data  |
+| `order_history` | list[Order] | All past orders               |
+
+🔹 Behaviour (Methods)
+| Method                   | Purpose                                     |
+| ------------------------ | ------------------------------------------- |
+| `add_order(order)`       | Append executed or pending order to history |
+| `show_portfolio(market)` | Display portfolio summary with live P&L     |
+| `__str__()`              | String representation for debug/logging     |
+
+
+💼 2️⃣ Portfolio
+
+→ Represents a collection of stock holdings and associated valuation.
+
+🔹 Relationship
+
+“Belongs to” → User
+
+“Uses” → Market (for current prices)
+
+🔹 State
+
+| Attribute  | Type | Description                                  |
+| ---------- | ---- | -------------------------------------------- |
+| `holdings` | dict | `{symbol: {"qty": int, "avg_price": float}}` |
+
+🔹 Behaviour
+
+| Method                        | Purpose                                      |
+| ----------------------------- | -------------------------------------------- |
+| `add_buy(symbol, qty, price)` | Update or add new holding with averaged cost |
+| `add_sell(symbol, qty)`       | Decrease or remove holding                   |
+| `compute_pnl(market)`         | Calculate P&L per symbol and total P&L       |
+| `summary(market)`             | Pretty-print portfolio state and live P&L    |
+
+
+
+🏦 3️⃣ Broker
+
+→ Middle layer connecting users and the market. Handles validation and routing.
+
+🔹 Relationship
+
+“Has a” → TradeEngine
+
+“Has a” → Market
+
+“Manages many” → Order objects
+
+🔹 State
+| Attribute      | Type        | Description                     |
+| -------------- | ----------- | ------------------------------- |
+| `market`       | Market      | Reference to the running market |
+| `trade_engine` | TradeEngine | Executes validated orders       |
+| `order_book`   | list[Order] | List of all processed orders    |
+
+🔹 Behaviour
+
+| Method                                       | Purpose                                         |
+| -------------------------------------------- | ----------------------------------------------- |
+| `place_order(user, symbol, qty, order_type)` | Accept user order, validate, and execute        |
+| `_validate_order(user, order)`               | Check user balance or holdings before execution |
+
+
+⚙️ 4️⃣ TradeEngine
+
+→ Core execution unit that changes user’s balance and portfolio.
+
+🔹 Relationship
+
+“Belongs to” → Broker
+
+“Uses” → Market (to fetch live prices)
+
+“Updates” → User and Portfolio
+
+🔹 State
+| Attribute | Type   | Description                         |
+| --------- | ------ | ----------------------------------- |
+| `market`  | Market | Market reference for current prices |
+
+🔹 Behaviour
+
+| Method                                            | Purpose                                     |
+| ------------------------------------------------- | ------------------------------------------- |
+| `execute_order(order)`                            | Execute order (buy/sell) using market price |
+| `_update_portfolio_buy(user, symbol, qty, price)` | Adjust holding and average price            |
+| `_update_portfolio_sell(user, symbol, qty)`       | Reduce holdings and credit proceeds         |
+
+
+
+
+💹 5️⃣ Market
+
+→ Simulates live market behaviour.
+
+🔹 Relationship
+
+“Has many” → Stock objects
+
+“Used by” → Broker, TradeEngine, Portfolio
+
+🔹 State
+| Attribute | Type             | Description             |
+| --------- | ---------------- | ----------------------- |
+| `stocks`  | dict[str, Stock] | Current market snapshot |
+
+
+🔹 Behaviour
+
+| Method              | Purpose                                  |
+| ------------------- | ---------------------------------------- |
+| `start_market()`    | Start background thread to update prices |
+| `get_price(symbol)` | Get current market price of symbol       |
+| `list_stocks()`     | Return all stock summaries               |
+
+
+📈 6️⃣ Stock
+
+→ Represents an individual stock instrument.
+
+🔹 Relationship
+
+“Belongs to” → Market
+
+🔹 State
+
+| Attribute | Type  | Description              |
+| --------- | ----- | ------------------------ |
+| `symbol`  | str   | Stock ticker (e.g., TCS) |
+| `name`    | str   | Full name                |
+| `price`   | float | Current market price     |
+
+🔹 Behaviour
+
+| Method           | Purpose                                      |
+| ---------------- | -------------------------------------------- |
+| `update_price()` | Randomly change price to simulate volatility |
+| `__str__()`      | Readable representation of stock state       |
+
+🧾 7️⃣ Order
+
+→ Encapsulates a single trade instruction.
+
+🔹 Relationship
+
+“Belongs to” → User
+
+“Processed by” → Broker & TradeEngine
+
+🔹 State
+
+| Attribute    | Type     | Description                       |
+| ------------ | -------- | --------------------------------- |
+| `id`         | str      | Unique order ID                   |
+| `user`       | User     | Order owner                       |
+| `symbol`     | str      | Target stock                      |
+| `qty`        | int      | Quantity                          |
+| `order_type` | str      | BUY / SELL                        |
+| `price`      | float    | Price at execution (market price) |
+| `status`     | str      | PENDING / FILLED / REJECTED       |
+| `timestamp`  | datetime | Order creation time               |
+
+🔹 Behaviour
+
+| Method      | Purpose                              |
+| ----------- | ------------------------------------ |
+| `__str__()` | Compact readable summary for logs/UI |
+
+
+
+
+
+💾 8️⃣ DataStore
+
+→ Responsible for saving/loading system data persistently.
+
+🔹 Relationship
+
+“Used by” → App layer or Broker
+
+“Stores” → User, Orders, Portfolio data
+
+🔹 State
+
+| Attribute | Type | Description                       |
+| --------- | ---- | --------------------------------- |
+| `file`    | Path | Path to JSON file for persistence |
+
+
+🔹 Behaviour
+
+| Method                | Purpose                       |
+| --------------------- | ----------------------------- |
+| `save_user(user)`     | Save user state to JSON file  |
+| `load_user(username)` | Retrieve user state from file |
+
+
+
+🧩 OOP RELATIONSHIP SUMMARY
+
+| Relationship                                        | Description |
+| --------------------------------------------------- | ----------- |
+| `User` **has a** `Portfolio`                        | composition |
+| `User` **has many** `Order`                         | aggregation |
+| `Broker` **has a** `TradeEngine`                    | composition |
+| `Broker` **has a** `Market`                         | composition |
+| `Market` **has many** `Stock`                       | aggregation |
+| `TradeEngine` **uses** `Market`, **updates** `User` | association |
+| `Portfolio` **uses** `Market` for P&L               | association |
+| `DataStore` **persists** `User`                     | association |
+
+
+🔄 Behavioural View (Lifecycle)
+
+| Step | Actor           | Action                                         |
+| ---- | --------------- | ---------------------------------------------- |
+| 1️⃣  | **User**        | Calls `Broker.place_order()`                   |
+| 2️⃣  | **Broker**      | Creates `Order`, validates, forwards           |
+| 3️⃣  | **TradeEngine** | Executes, updates `User.balance` & `Portfolio` |
+| 4️⃣  | **Portfolio**   | Recalculates holdings                          |
+| 5️⃣  | **Market**      | Provides price data                            |
+| 6️⃣  | **DataStore**   | Saves new state to file                        |
+
+
+🧠 Core OOP Concepts Illustrated
+
+| Concept                       | Where It Appears                                                     |
+| ----------------------------- | -------------------------------------------------------------------- |
+| **Encapsulation**             | Each class manages its own data (`Portfolio`, `User`, `TradeEngine`) |
+| **Abstraction**               | Market hides price update logic; Broker hides execution details      |
+| **Composition**               | User → Portfolio; Broker → TradeEngine                               |
+| **Inheritance (future use)**  | Could extend `Order` → `LimitOrder`, `MarketOrder`                   |
+| **Polymorphism (future use)** | Different order types could override `execute()`                     |
+
+
+                         ┌──────────────────────────┐
+                         │        Market            │
+                         │──────────────────────────│
+                         │ - stocks: dict[str,Stock]│
+                         │──────────────────────────│
+                         │ + start_market()         │
+                         │ + get_price(symbol)      │
+                         │ + list_stocks()          │
+                         └────────────┬─────────────┘
+                                      │ 1..*
+                                      │
+                                      ▼
+                           ┌───────────────────────┐
+                           │        Stock          │
+                           │───────────────────────│
+                           │ - symbol: str         │
+                           │ - name: str           │
+                           │ - price: float        │
+                           │───────────────────────│
+                           │ + update_price()      │
+                           │ + __str__()           │
+                           └───────────────────────┘
+
+
+┌──────────────────────┐         uses          ┌──────────────────────────┐
+│        Broker         │────────────────────▶│         Market            │
+│──────────────────────│                     └──────────────────────────┘
+│ - market: Market      │
+│ - trade_engine: TradeEngine │
+│ - order_book: list[Order]   │
+│──────────────────────│
+│ + place_order()      │
+│ + _validate_order()  │
+└──────────┬───────────┘
+           │ has a
+           ▼
+┌──────────────────────────┐
+│      TradeEngine         │
+│──────────────────────────│
+│ - market: Market         │
+│──────────────────────────│
+│ + execute_order(order)   │
+│ + _update_portfolio_buy()│
+│ + _update_portfolio_sell()│
+└──────────┬───────────────┘
+           │
+           │ updates
+           ▼
+   ┌──────────────────────────┐
+   │          User            │
+   │──────────────────────────│
+   │ - username: str          │
+   │ - balance: float         │
+   │ - portfolio: Portfolio   │
+   │ - order_history: list[Order] │
+   │──────────────────────────│
+   │ + add_order(order)       │
+   │ + show_portfolio(market) │
+   │ + __str__()              │
+   └──────────┬───────────────┘
+              │ has a
+              ▼
+     ┌────────────────────────┐
+     │       Portfolio         │
+     │────────────────────────│
+     │ - holdings: dict        │
+     │────────────────────────│
+     │ + add_buy()             │
+     │ + add_sell()            │
+     │ + compute_pnl()         │
+     │ + summary()             │
+     └────────────────────────┘
+
+
+┌──────────────────────────┐
+│          Order            │
+│──────────────────────────│
+│ - id: str                 │
+│ - user: User              │
+│ - symbol: str             │
+│ - qty: int                │
+│ - order_type: str         │
+│ - price: float            │
+│ - status: str             │
+│ - timestamp: datetime     │
+│──────────────────────────│
+│ + __str__()               │
+└──────────────────────────┘
+
+
+┌──────────────────────────┐
+│       DataStore           │
+│──────────────────────────│
+│ - file: str               │
+│──────────────────────────│
+│ + save_user(user)         │
+│ + load_user(username)     │
+└──────────────────────────┘
+
+Questions:
+
+user.py
