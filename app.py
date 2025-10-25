@@ -4,7 +4,22 @@ from services.market import Market
 from services.broker import Broker
 from services.datastore import Datastore
 import time, os
+from utils.constants import DEFAULT_STOCKS
+from services.market import Market
+from cli.menu import main_menu, dashboard_menu
 
+def start_app():
+    datastore = Datastore()
+    market = Market()
+    broker = Broker(market)
+
+    user = main_menu(datastore)
+    dashboard_menu(user, broker, market, datastore)
+
+if __name__ == "__main__":
+    start_app()
+
+"""
 #Create Some Stocks
 
 stocks = [
@@ -59,3 +74,4 @@ broker.place_order(user, "INFY", 5, "BUY")
 
 user.show_portfolio(market)
 store.save_user(user)
+"""

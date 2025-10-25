@@ -1,7 +1,8 @@
 from models.portfolio import Portfolio
+from utils.constants import DEFAULT_INITIAL_BALANCE
 
 class User:
-    def __init__(self, username:str, balance:float = 100000.0):
+    def __init__(self, username:str, balance:float = DEFAULT_INITIAL_BALANCE):
         self.username = username
         self.balance = balance
         self.portfolio = Portfolio()
